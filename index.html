@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Supermercado</title>
+    <title>Preço por Kg/L</title>
     
     <!-- Ligações obrigatórias para o Chrome permitir a instalação via GitHub -->
     <link rel="manifest" href="manifest.json">
@@ -37,7 +37,7 @@
             font-weight: bold;
             font-size: 22px;
         }
-        input, select {
+        input {
             width: 100%;
             padding: 16px;
             font-size: 24px;
@@ -47,7 +47,7 @@
             margin-top: 5px;
             background: #fff;
         }
-        input:focus, select:focus {
+        input:focus {
             border-color: #2563eb;
             outline: none;
         }
@@ -107,7 +107,7 @@
 <body>
 
 <div class="container">
-    <h1>🛒 Preço Certo</h1>
+    <h1>🛒 Preço por Kg/L</h1>
 
     <label for="preco">Preço do Produto (€)</label>
     <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this)">
@@ -115,17 +115,11 @@
     <label for="quantidade">Quantidade (g ou ml)</label>
     <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this)">
 
-    <label for="unidade">O produto é medido em:</label>
-    <select id="unidade">
-        <option value="g">Gramas (g)</option>
-        <option value="ml">Mililitros (ml)</option>
-    </select>
-
-    <button id="btnCalcular">VER PREÇO REAL</button>
-    <button id="btnLimpar">APAGAR / NOVA CONTA</button>
+    <button id="btnCalcular">VER PREÇO</button>
+    <button id="btnLimpar">LIMPAR</button>
 
     <div id="resultado-box">
-        <div class="resultado-titulo" id="res-titulo">Preço por Kg</div>
+        <div class="resultado-titulo">Preço por Kg ou Litro</div>
         <div class="resultado-valor" id="res-valor">0,00 €</div>
     </div>
 </div>
@@ -161,10 +155,8 @@ function calcular() {
 
     const preco = parseFloat(precoTexto);
     const qtd = parseInt(qtdTexto, 10);
-    const unidade = document.getElementById("unidade").value;
 
     const caixaResultado = document.getElementById("resultado-box");
-    const txtTitulo = document.getElementById("res-titulo");
     const txtValor = document.getElementById("res-valor");
     const btnLimpar = document.getElementById("btnLimpar");
 
@@ -172,8 +164,6 @@ function calcular() {
         caixaResultado.style.display = "block";
         caixaResultado.style.background = "#fef2f2";
         caixaResultado.style.borderColor = "#ef4444";
-        txtTitulo.style.color = "#991b1b";
-        txtTitulo.innerText = "Aviso";
         txtValor.style.color = "#991b1b";
         txtValor.style.fontSize = "22px";
         txtValor.innerText = "Por favor, digite o preço e a quantidade.";
@@ -181,25 +171,23 @@ function calcular() {
         return;
     }
 
+    // A matemática direta simplificada que serve para ambos
     let precoFinal = (preco * 1000) / qtd;
-    let sufixo = (unidade === "g") ? "€/Kg" : "€/L";
-    txtTitulo.innerText = (unidade === "g") ? "Preço por Quilo" : "Preço por Litro";
 
     caixaResultado.style.display = "block";
     caixaResultado.style.background = "#ecfdf5";
     caixaResultado.style.borderColor = "#10b981";
-    txtTitulo.style.color = "#065f46";
     txtValor.style.color = "#047857";
     txtValor.style.fontSize = "40px";
 
-    txtValor.innerText = `${precoFinal.toFixed(2).replace('.', ',')} ${sufixo}`;
+    // Mostra apenas o símbolo de Euro (€), já que o título acima avisa que é por Kg ou Litro
+    txtValor.innerText = `${precoFinal.toFixed(2).replace('.', ',')} €`;
     btnLimpar.style.display = "block";
 }
 
 function limparCampos() {
     document.getElementById("preco").value = "";
     document.getElementById("quantidade").value = "";
-    document.getElementById("unidade").selectedIndex = 0;
     
     document.getElementById("resultado-box").style.display = "none";
     document.getElementById("btnLimpar").style.display = "none";
@@ -207,7 +195,6 @@ function limparCampos() {
     document.getElementById("preco").focus();
 }
 
-// Ativa o assistente offline apenas se o site for aberto via Servidor/GitHub (HTTPS/HTTP)
 if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js')
         .then(() => console.log("Modo offline ativado com sucesso!"))
