@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preço por Kg/L</title>
+    <title>Descontos</title>
     
-    <!-- Ligações obrigatórias para o Chrome permitir a instalação via GitHub -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Descontos">
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3a8a">
     
@@ -73,8 +77,7 @@
         #btnLimpar {
             background: #64748b;
             color: white;
-            margin-top: 15px;
-            display: none;
+            display: none; 
         }
         #btnLimpar:active {
             background: #475569;
@@ -96,102 +99,423 @@
             font-weight: bold;
             letter-spacing: 1px;
         }
-        .resultado-valor {
+        .preco-final {
             font-size: 40px;
             font-weight: 900;
             color: #047857;
             margin-top: 10px;
+        }
+        .poupanca {
+            font-size: 22px;
+            color: #065f46;
+            margin-top: 8px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🛒 Preço por Kg/L</h1>
+    <h1 id="titulo-principal">🛒 Descontos</h1>
 
-    <label for="preco">Preço do Produto (€)</label>
-    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this)">
+    <label for="preco" id="label-preco">Preço Original (€)</label>
+    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Preço Original" onclick="this.select()" oninput="validarPreco(this)">
 
-    <label for="quantidade">Quantidade (g ou ml)</label>
-    <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this)">
+    <label for="desconto" id="label-desconto">Desconto (%)</label>
+    <input type="text" id="desconto" inputmode="decimal" placeholder="Ex: 20" autocomplete="off" aria-label="Desconto" onclick="this.select()" oninput="validarDesconto(this)">
 
-    <button id="btnCalcular">VER PREÇO</button>
-    <button id="btnLimpar">LIMPAR</button>
+    <button id="btnCalcular" aria-label="Calcular preço">CALCULAR</button>
+    <button id="btnLimpar" aria-label="Limpar campos">LIMPAR</button>
 
     <div id="resultado-box">
-        <div class="resultado-titulo">Preço por Kg ou Litro</div>
-        <div class="resultado-valor" id="res-valor">0,00 €</div>
+        <div class="resultado-titulo" id="res-titulo">Preço Final</div>
+        <div class="preco-final" id="res-valor">0,00 €</div>
+        <div class="poupanca" id="res-poupanca"></div>
     </div>
 </div>
 
 <script>
+// 🌐 Dicionário com variantes regionais e fallback por idioma base
+const dicionario = {
+    "pt-PT": {
+        titulo: "🛒 Descontos",
+        labelPreco: "Preço Original (€)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Desconto (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULAR",
+        btnLimpar: "LIMPAR",
+        resultadoTitulo: "Preço Final",
+        avisoTitulo: "Aviso",
+        avisoTexto: "Por favor, digite o preço e o desconto.",
+        poupancaTexto: "Poupa",
+        locale: "pt-PT",
+        moedaCodigo: "EUR"
+    },
+    "pt-BR": {
+        titulo: "🛒 Descontos",
+        labelPreco: "Preço Original (R$)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Desconto (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULAR",
+        btnLimpar: "LIMPAR",
+        resultadoTitulo: "Preço Final",
+        avisoTitulo: "Aviso",
+        avisoTexto: "Por favor, digite o preço e o desconto.",
+        poupancaTexto: "Poupa",
+        locale: "pt-BR",
+        moedaCodigo: "BRL"
+    },
+    "en-US": {
+        titulo: "🛒 Discounts",
+        labelPreco: "Original Price ($)",
+        placeholderPreco: "0.00",
+        labelDesconto: "Discount (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULATE",
+        btnLimpar: "CLEAR",
+        resultadoTitulo: "Final Price",
+        avisoTitulo: "Warning",
+        avisoTexto: "Please enter the price and discount.",
+        poupancaTexto: "You save",
+        locale: "en-US",
+        moedaCodigo: "USD"
+    },
+    "en-GB": {
+        titulo: "🛒 Discounts",
+        labelPreco: "Original Price (£)",
+        placeholderPreco: "0.00",
+        labelDesconto: "Discount (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULATE",
+        btnLimpar: "CLEAR",
+        resultadoTitulo: "Final Price",
+        avisoTitulo: "Warning",
+        avisoTexto: "Please enter the price and discount.",
+        poupancaTexto: "You save",
+        locale: "en-GB",
+        moedaCodigo: "GBP"
+    },
+    "en-AU": {
+        titulo: "🛒 Discounts",
+        labelPreco: "Original Price ($)",
+        placeholderPreco: "0.00",
+        labelDesconto: "Discount (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULATE",
+        btnLimpar: "CLEAR",
+        resultadoTitulo: "Final Price",
+        avisoTitulo: "Warning",
+        avisoTexto: "Please enter the price and discount.",
+        poupancaTexto: "You save",
+        locale: "en-AU",
+        moedaCodigo: "AUD"
+    },
+    "es-ES": {
+        titulo: "🛒 Descuentos",
+        labelPreco: "Precio Original (€)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Descuento (%)",
+        placeholderDesconto: "Ej: 20",
+        btnCalcular: "CALCULAR",
+        btnLimpar: "LIMPIAR",
+        resultadoTitulo: "Precio Final",
+        avisoTitulo: "Aviso",
+        avisoTexto: "Por favor, introduzca el precio y el descuento.",
+        poupancaTexto: "Ahorra",
+        locale: "es-ES",
+        moedaCodigo: "EUR"
+    },
+    "fr-FR": {
+        titulo: "🛒 Réductions",
+        labelPreco: "Prix Initial (€)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Réduction (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULER",
+        btnLimpar: "EFFACER",
+        resultadoTitulo: "Prix Final",
+        avisoTitulo: "Attention",
+        avisoTexto: "Veuillez entrer le prix et la réduction.",
+        poupancaTexto: "Économisez",
+        locale: "fr-FR",
+        moedaCodigo: "EUR"
+    },
+    "de-DE": {
+        titulo: "🛒 Rabatte",
+        labelPreco: "Originalpreis (€)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Rabatt (%)",
+        placeholderDesconto: "Bsp: 20",
+        btnCalcular: "BERECHNEN",
+        btnLimpar: "LÖSCHEN",
+        resultadoTitulo: "Endpreis",
+        avisoTitulo: "Hinweis",
+        avisoTexto: "Bitte geben Sie Preis und Rabatt ein.",
+        poupancaTexto: "Ersparnis",
+        locale: "de-DE",
+        moedaCodigo: "EUR"
+    },
+    "it-IT": {
+        titulo: "🛒 Sconti",
+        labelPreco: "Prezzo Originale (€)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Sconto (%)",
+        placeholderDesconto: "Es: 20",
+        btnCalcular: "CALCOLA",
+        btnLimpar: "CANCELLA",
+        resultadoTitulo: "Prezzo Finale",
+        avisoTitulo: "Avviso",
+        avisoTexto: "Inserisci il prezzo e lo sconto.",
+        poupancaTexto: "Risparmi",
+        locale: "it-IT",
+        moedaCodigo: "EUR"
+    },
+    "nl-NL": {
+        titulo: "🛒 Kortingen",
+        labelPreco: "Originele Prijs (€)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Korting (%)",
+        placeholderDesconto: "Bv: 20",
+        btnCalcular: "BEREKENEN",
+        btnLimpar: "WISSEN",
+        resultadoTitulo: "Eindprijs",
+        avisoTitulo: "Waarschuwing",
+        avisoTexto: "Voer de prijs en korting in.",
+        poupancaTexto: "Besparing",
+        locale: "nl-NL",
+        moedaCodigo: "EUR"
+    },
+    "pl-PL": {
+        titulo: "🛒 Zniżki",
+        labelPreco: "Cena Oryginalna (zł)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Zniżka (%)",
+        placeholderDesconto: "Np: 20",
+        btnCalcular: "OBLICZ",
+        btnLimpar: "WYCZYŚĆ",
+        resultadoTitulo: "Cena Końcowa",
+        avisoTitulo: "Uwaga",
+        avisoTexto: "Wprowadź cenę i zniżkę.",
+        poupancaTexto: "Oszczędzasz",
+        locale: "pl-PL",
+        moedaCodigo: "PLN"
+    },
+    "ro-RO": {
+        titulo: "🛒 Reduceri",
+        labelPreco: "Preț Original (lei)",
+        placeholderPreco: "0,00",
+        labelDesconto: "Reducere (%)",
+        placeholderDesconto: "Ex: 20",
+        btnCalcular: "CALCULEAZĂ",
+        btnLimpar: "ȘTERGE",
+        resultadoTitulo: "Preț Final",
+        avisoTitulo: "Atenție",
+        avisoTexto: "Introduceți prețul și reducerea.",
+        poupancaTexto: "Economisiți",
+        locale: "ro-RO",
+        moedaCodigo: "RON"
+    },
+    "ja-JP": {
+        titulo: "🛒 割引",
+        labelPreco: "元の価格 (¥)",
+        placeholderPreco: "0.00",
+        labelDesconto: "割引率 (%)",
+        placeholderDesconto: "例: 20",
+        btnCalcular: "計算する",
+        btnLimpar: "クリア",
+        resultadoTitulo: "最終価格",
+        avisoTitulo: "注意",
+        avisoTexto: "価格と割引率を入力してください。",
+        poupancaTexto: "節約額",
+        locale: "ja-JP",
+        moedaCodigo: "JPY"
+    },
+    "zh-CN": {
+        titulo: "🛒 折扣",
+        labelPreco: "原价 (¥)",
+        placeholderPreco: "0.00",
+        labelDesconto: "折扣 (%)",
+        placeholderDesconto: "例如: 20",
+        btnCalcular: "计算",
+        btnLimpar: "清除",
+        resultadoTitulo: "最终价格",
+        avisoTitulo: "警告",
+        avisoTexto: "请输入价格和折扣。",
+        poupancaTexto: "节省",
+        locale: "zh-CN",
+        moedaCodigo: "CNY"
+    }
+};
+
+const fallbackPorIdioma = {
+    en: "en-US",
+    pt: "pt-PT",
+    es: "es-ES",
+    fr: "fr-FR",
+    de: "de-DE",
+    it: "it-IT",
+    nl: "nl-NL",
+    pl: "pl-PL",
+    ro: "ro-RO",
+    ja: "ja-JP",
+    zh: "zh-CN"
+};
+
+function obterTraducao(langCode) {
+    if (dicionario[langCode]) return dicionario[langCode];
+    const baseLang = langCode.split('-')[0];
+    const fallback = fallbackPorIdioma[baseLang];
+    if (fallback && dicionario[fallback]) return dicionario[fallback];
+    return dicionario["pt-PT"];
+}
+
+function aplicarIdioma() {
+    const lang = navigator.language || 'pt-PT';
+    const trad = obterTraducao(lang);
+
+    document.getElementById("titulo-principal").innerText = trad.titulo;
+    document.getElementById("label-preco").innerText = trad.labelPreco;
+    document.getElementById("preco").placeholder = trad.placeholderPreco;
+    document.getElementById("preco").setAttribute("aria-label", trad.labelPreco);
+    document.getElementById("label-desconto").innerText = trad.labelDesconto;
+    document.getElementById("desconto").placeholder = trad.placeholderDesconto;
+    document.getElementById("desconto").setAttribute("aria-label", trad.labelDesconto);
+    document.getElementById("btnCalcular").innerText = trad.btnCalcular;
+    document.getElementById("btnCalcular").setAttribute("aria-label", trad.btnCalcular);
+    document.getElementById("btnLimpar").innerText = trad.btnLimpar;
+    document.getElementById("btnLimpar").setAttribute("aria-label", trad.btnLimpar);
+
+    const tituloSemIcone = trad.titulo.replace('🛒 ', '');
+    document.title = tituloSemIcone;
+    const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (metaTitle) metaTitle.setAttribute('content', tituloSemIcone);
+
+    window.tradAtiva = trad;
+    window.decimalSep = (1.1).toLocaleString(trad.locale).charAt(1);
+}
+
+aplicarIdioma();
+
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limparCampos);
 
+function esconderResultado() {
+    const caixaResultado = document.getElementById("resultado-box");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+
+    if (caixaResultado.style.display === "block") {
+        caixaResultado.style.display = "none";
+        btnCalcular.style.display = "block";
+        btnLimpar.style.display = "none";
+    }
+}
+
+document.getElementById("preco").addEventListener("focus", esconderResultado);
+document.getElementById("desconto").addEventListener("focus", esconderResultado);
+
 function validarPreco(input) {
+    if (!window.decimalSep) return;
     let valor = input.value;
-    
-    if (valor.startsWith('.') || valor.startsWith(',')) {
-        valor = '0,' + valor.substring(1);
-    }
-    
-    valor = valor.replace('.', ',');
-    valor = valor.replace(/[^0-9,]/g, '');
-    const partes = valor.split(',');
+    const sep = window.decimalSep;
+    const outroSep = (sep === ',') ? '.' : ',';
+    valor = valor.replace(new RegExp(`\\${outroSep}`, 'g'), sep);
+    valor = valor.replace(new RegExp(`[^0-9\\${sep}]`, 'g'), '');
+    const partes = valor.split(sep);
     if (partes.length > 2) {
-        valor = partes[0] + ',' + partes.slice(1).join('');
+        valor = partes[0] + sep + partes.slice(1).join('');
     }
-    
+    if (valor.startsWith(sep)) {
+        valor = '0' + sep + valor.substring(1);
+    }
     input.value = valor;
 }
 
-function validarQuantidade(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
+function validarDesconto(input) {
+    // Permite números e o separador decimal local, sem símbolo de %
+    if (!window.decimalSep) return;
+    let val = input.value;
+    const sep = window.decimalSep;
+    const outroSep = (sep === ',') ? '.' : ',';
+    val = val.replace(new RegExp(`\\${outroSep}`, 'g'), sep);
+    val = val.replace(new RegExp(`[^0-9\\${sep}]`, 'g'), '');
+    const primeiraVirgula = val.indexOf(sep);
+    if (primeiraVirgula !== -1) {
+        const antes = val.substring(0, primeiraVirgula + 1);
+        const depois = val.substring(primeiraVirgula + 1).replace(new RegExp(`\\${sep}`, 'g'), '');
+        val = antes + depois;
+    }
+    input.value = val;
+}
+
+function interpretarNumero(valorTexto) {
+    const sep = window.decimalSep;
+    let limpo = valorTexto.replace(new RegExp(`\\${sep}`, 'g'), '.').replace(/[^0-9.]/g, '');
+    if (limpo === '' || limpo === '.') return NaN;
+    return parseFloat(limpo);
 }
 
 function calcular() {
-    const precoTexto = document.getElementById("preco").value.replace(',', '.');
-    const qtdTexto = document.getElementById("quantidade").value;
+    const precoTexto = document.getElementById("preco").value.replace(window.decimalSep, '.');
+    const descontoTexto = document.getElementById("desconto").value.trim();
 
     const preco = parseFloat(precoTexto);
-    const qtd = parseInt(qtdTexto, 10);
+    const desconto = interpretarNumero(descontoTexto);
 
     const caixaResultado = document.getElementById("resultado-box");
+    const txtTitulo = document.getElementById("res-titulo");
     const txtValor = document.getElementById("res-valor");
+    const txtPoupanca = document.getElementById("res-poupanca");
+    const btnCalcular = document.getElementById("btnCalcular");
     const btnLimpar = document.getElementById("btnLimpar");
 
-    if (isNaN(preco) || isNaN(qtd) || qtd <= 0) {
+    const trad = window.tradAtiva;
+
+    if (isNaN(preco) || isNaN(desconto) || preco < 0 || desconto < 0 || desconto > 100) {
+        txtTitulo.innerText = trad.avisoTitulo;
         caixaResultado.style.display = "block";
         caixaResultado.style.background = "#fef2f2";
         caixaResultado.style.borderColor = "#ef4444";
         txtValor.style.color = "#991b1b";
         txtValor.style.fontSize = "22px";
-        txtValor.innerText = "Por favor, digite o preço e a quantidade.";
-        btnLimpar.style.display = "block";
+        txtValor.innerText = trad.avisoTexto;
+        txtPoupanca.innerText = "";
         return;
     }
 
-    // A matemática direta simplificada que serve para ambos
-    let precoFinal = (preco * 1000) / qtd;
+    const precoFinal = preco * (1 - desconto / 100);
+    const poupanca = preco - precoFinal;
+
+    const formatoMoeda = new Intl.NumberFormat(trad.locale, {
+        style: 'currency',
+        currency: trad.moedaCodigo
+    });
+
+    txtTitulo.innerText = trad.resultadoTitulo;
+    txtValor.style.color = "#047857";
+    txtValor.style.fontSize = "40px";
+    txtValor.innerText = formatoMoeda.format(precoFinal);
+    txtPoupanca.innerText = `${trad.poupancaTexto}: ${formatoMoeda.format(poupanca)}`;
 
     caixaResultado.style.display = "block";
     caixaResultado.style.background = "#ecfdf5";
     caixaResultado.style.borderColor = "#10b981";
-    txtValor.style.color = "#047857";
-    txtValor.style.fontSize = "40px";
 
-    // Mostra apenas o símbolo de Euro (€), já que o título acima avisa que é por Kg ou Litro
-    txtValor.innerText = `${precoFinal.toFixed(2).replace('.', ',')} €`;
+    btnCalcular.style.display = "none";
     btnLimpar.style.display = "block";
 }
 
 function limparCampos() {
     document.getElementById("preco").value = "";
-    document.getElementById("quantidade").value = "";
-    
+    document.getElementById("desconto").value = "";
+
     document.getElementById("resultado-box").style.display = "none";
+
+    document.getElementById("btnCalcular").style.display = "block";
     document.getElementById("btnLimpar").style.display = "none";
-    
+
     document.getElementById("preco").focus();
 }
 
