@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-title" content="Descontos">
 
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#c2410c">
     
     <style>
         body {
@@ -33,7 +33,7 @@
             text-align: center;
             font-size: 28px;
             margin-bottom: 20px;
-            color: #1e3a8a;
+            color: #9a3412;
         }
         label {
             display: block;
@@ -52,7 +52,7 @@
             background: #fff;
         }
         input:focus {
-            border-color: #2563eb;
+            border-color: #d97706;
             outline: none;
         }
         button {
@@ -67,26 +67,26 @@
             margin-top: 25px;
         }
         #btnCalcular {
-            background: #059669;
+            background: #d97706;
             color: white;
         }
         #btnCalcular:active {
-            background: #047857;
+            background: #b45309;
             transform: scale(0.98);
         }
         #btnLimpar {
-            background: #64748b;
+            background: #78716c;
             color: white;
             display: none; 
         }
         #btnLimpar:active {
-            background: #475569;
+            background: #57534e;
             transform: scale(0.98);
         }
         #resultado-box {
             margin-top: 25px;
-            background: #ecfdf5;
-            border: 3px solid #10b981;
+            background: #fef3c7;
+            border: 3px solid #f59e0b;
             padding: 20px;
             border-radius: 12px;
             text-align: center;
@@ -94,7 +94,7 @@
         }
         .resultado-titulo {
             font-size: 20px;
-            color: #065f46;
+            color: #92400e;
             text-transform: uppercase;
             font-weight: bold;
             letter-spacing: 1px;
@@ -102,12 +102,12 @@
         .preco-final {
             font-size: 40px;
             font-weight: 900;
-            color: #047857;
+            color: #b45309;
             margin-top: 10px;
         }
         .poupanca {
             font-size: 22px;
-            color: #065f46;
+            color: #78350f;
             margin-top: 8px;
             font-weight: bold;
         }
@@ -434,7 +434,6 @@ function validarPreco(input) {
 }
 
 function validarDesconto(input) {
-    // Permite números e o separador decimal local, sem símbolo de %
     if (!window.decimalSep) return;
     let val = input.value;
     const sep = window.decimalSep;
@@ -494,14 +493,14 @@ function calcular() {
     });
 
     txtTitulo.innerText = trad.resultadoTitulo;
-    txtValor.style.color = "#047857";
+    txtValor.style.color = "#b45309";
     txtValor.style.fontSize = "40px";
     txtValor.innerText = formatoMoeda.format(precoFinal);
     txtPoupanca.innerText = `${trad.poupancaTexto}: ${formatoMoeda.format(poupanca)}`;
 
     caixaResultado.style.display = "block";
-    caixaResultado.style.background = "#ecfdf5";
-    caixaResultado.style.borderColor = "#10b981";
+    caixaResultado.style.background = "#fef3c7";
+    caixaResultado.style.borderColor = "#f59e0b";
 
     btnCalcular.style.display = "none";
     btnLimpar.style.display = "block";
